@@ -1,67 +1,8 @@
 // =========================================================
-// app.js — основной модуль UI
+// app.js — UI и логика интерфейса
+// Работает с модулями: Auth, Storage, PhotoUtils, TravelMap.
+// Storage теперь в storage.js — здесь его НЕТ.
 // =========================================================
-
-/* ---------------------- STORAGE ---------------------- */
-const Storage = (() => {
-    const KEY = 'travel_diary_trips';
-
-    function allTrips() {
-        try { return JSON.parse(localStorage.getItem(KEY)) || []; }
-        catch { return []; }
-    }
-    function saveAll(trips) { localStorage.setItem(KEY, JSON.stringify(trips)); }
-
-    function getAll() {
-        const u = Auth.currentUser();
-        if (!u) return [];
-        return allTrips().filter(t => t.userId === u.id);
-    }
-
-    function add(trip) {
-        const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
-        const trips = allTrips();
-        trip.id = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 6);
-        trip.userId = u.id;
-        trip.createdAt = new Date().toISOString();
-        trips.push(trip);
-        saveAll(trips);
-        return trip;
-    }
-
-    function update(id, updated) {
-        const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
-        const trips = allTrips();
-        const i = trips.findIndex(t => t.id === id && t.userId === u.id);
-        if (i === -1) return null;
-        trips[i] = { ...trips[i], ...updated, id, userId: u.id };
-        saveAll(trips);
-        return trips[i];
-    }
-
-    function remove(id) {
-        const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
-        saveAll(allTrips().filter(t => !(t.id === id && t.userId === u.id)));
-    }
-
-    function getById(id) {
-        return getAll().find(t => t.id === id) || null;
-    }
-
-    function replaceMine(newTrips) {
-        const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
-        const others = allTrips().filter(t => t.userId !== u.id);
-        const mine = newTrips.map(t => ({ ...t, userId: u.id }));
-        saveAll(others.concat(mine));
-    }
-
-    return { getAll, add, update, remove, getById, replaceMine };
-})();
-
 
 /* ---------------------- UI ---------------------- */
 (() => {
@@ -146,6 +87,7 @@ const Storage = (() => {
         lightboxNext:   $('lightboxNext')
     };
 
+    /* ---------- Утилиты ---------- */
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, c => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;',
@@ -176,6 +118,7 @@ const Storage = (() => {
         return map;
     }
 
+    /* ---------- Авторизация ---------- */
     function bindAuthEvents() {
         els.authTabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -277,6 +220,7 @@ const Storage = (() => {
         els.loginError.textContent = '';
     }
 
+    /* ---------- События интерфейса ---------- */
     function bindAppEvents() {
         els.addBtn.addEventListener('click', () => openModal());
         els.closeBtn.addEventListener('click', closeModal);
@@ -371,6 +315,7 @@ const Storage = (() => {
         });
     }
 
+    /* ---------- Фото ---------- */
     function renderPhotoPreview() {
         els.photoPreview.innerHTML = '';
         editingPhotos.forEach((dataUrl, index) => {
@@ -442,6 +387,7 @@ const Storage = (() => {
         updateLightbox();
     }
 
+    /* ---------- Модальное окно поездки ---------- */
     function openModal(trip = null) {
         els.form.reset();
         editingId = null;
@@ -534,6 +480,7 @@ const Storage = (() => {
         setTimeout(() => TravelMap.invalidate(), 150);
     }
 
+    /* ---------- Рендер ---------- */
     function renderAll() {
         renderCountryFilter();
         renderTrips();
@@ -689,6 +636,7 @@ const Storage = (() => {
         els.statDays.textContent = totalDays;
     }
 
+    /* ---------- Доп. кнопки ---------- */
     function openRandomTrip() {
         if (!trips.length) { alert('Сначала добавьте поездку'); return; }
         const trip = trips[Math.floor(Math.random() * trips.length)];
@@ -704,6 +652,7 @@ const Storage = (() => {
         setTimeout(() => TravelMap.invalidate(), 150);
     }
 
+    /* ---------- Экспорт / импорт ---------- */
     function exportJson() {
         if (!trips.length) return alert('Нет данных');
         const blob = new Blob([JSON.stringify(trips, null, 2)], { type: 'application/json' });
@@ -775,21 +724,8 @@ const Storage = (() => {
         reader.readAsText(file);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if (localStorage.getItem('travel_theme') === 'dark') {
-            document.body.classList.add('dark');
-        }
-
-        window.__onMapClick = (lat, lng) => {
-            els.tripLat.value = lat.toFixed(6);
-            els.tripLng.value = lng.toFixed(6);
-            [els.tripLat, els.tripLng].forEach(inp => {
-                inp.style.transition = 'box-shadow 0.2s';
-                inp.style.boxShadow = '0 0 0 3px rgba(79,70,229,.35)';
-                setTimeout(() => { inp.style.boxShadow = ''; }, 500);
-            });
-        };
-
+    /* ---------- Экспортируем наружу для main.js ---------- */
+    window.__appInit = function () {
         bindAuthEvents();
         bindAppEvents();
 
@@ -799,5 +735,5 @@ const Storage = (() => {
             els.authScreen.classList.remove('hidden');
             els.app.classList.add('hidden');
         }
-    });
+    };
 })();
