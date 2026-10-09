@@ -1,10 +1,9 @@
 // =========================================================
 // app.js — UI и логика интерфейса
-// Работает с модулями: Auth, Storage, PhotoUtils, TravelMap.
-// Storage теперь в storage.js — здесь его НЕТ.
 // =========================================================
 
-/* ---------------------- UI ---------------------- */
+const DEBUG = false;
+
 (() => {
     let trips = [];
     let editingId = null;
@@ -87,18 +86,14 @@
         lightboxNext:   $('lightboxNext')
     };
 
-    /* ---------- Утилиты ---------- */
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, c => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;',
-            '"': '&quot;', "'": '&#39;'
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[c]));
     }
     function formatDate(iso) {
         if (!iso) return '';
-        return new Date(iso).toLocaleDateString('ru-RU', {
-            day: 'numeric', month: 'short', year: 'numeric'
-        });
+        return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
     }
     function daysBetween(start, end) {
         const ms = new Date(end) - new Date(start);
@@ -111,14 +106,12 @@
         return 'дней';
     }
     function buildNumberMap(list) {
-        const sorted = [...list].sort((a, b) =>
-            new Date(a.startDate) - new Date(b.startDate));
+        const sorted = [...list].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         const map = new Map();
         sorted.forEach((t, i) => map.set(t.id, i + 1));
         return map;
     }
 
-    /* ---------- Авторизация ---------- */
     function bindAuthEvents() {
         els.authTabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -145,6 +138,7 @@
                 els.loginForm.reset();
                 enterApp();
             } catch (err) {
+                console.error(err);
                 els.loginError.textContent = err.message;
             }
         });
@@ -157,14 +151,11 @@
                 return;
             }
             try {
-                await Auth.register(
-                    els.regName.value,
-                    els.regEmail.value,
-                    els.regPassword.value
-                );
+                await Auth.register(els.regName.value, els.regEmail.value, els.regPassword.value);
                 els.registerForm.reset();
                 enterApp();
             } catch (err) {
+                console.error(err);
                 els.registerError.textContent = err.message;
             }
         });
@@ -183,25 +174,6 @@
         els.authScreen.classList.add('hidden');
         els.app.classList.remove('hidden');
 
-        if (!window.__mapInited) {
-            window.__mapInited = true;
-            TravelMap.init({
-                onEdit: id => {
-                    const t = Storage.getById(id);
-                    if (t) openModal(t);
-                },
-                onDelete: id => {
-                    const t = Storage.getById(id);
-                    if (!t) return;
-                    if (confirm(`Удалить поездку «${t.title}»?`)) {
-                        Storage.remove(id);
-                        trips = Storage.getAll();
-                        renderAll();
-                    }
-                }
-            });
-        }
-
         trips = Storage.getAll();
         renderAll();
         setTimeout(() => TravelMap.invalidate(), 200);
@@ -212,15 +184,12 @@
         els.app.classList.add('hidden');
         els.authScreen.classList.remove('hidden');
         els.userNameChip.textContent = '—';
-        if (window.__mapInited) {
-            try { TravelMap.render([]); } catch (e) {}
-        }
+        if (window.__mapInited) { try { TravelMap.render([]); } catch (e) {} }
         els.loginEmail.value = '';
         els.loginPassword.value = '';
         els.loginError.textContent = '';
     }
 
-    /* ---------- События интерфейса ---------- */
     function bindAppEvents() {
         els.addBtn.addEventListener('click', () => openModal());
         els.closeBtn.addEventListener('click', closeModal);
@@ -246,9 +215,7 @@
                 els.tripRating.value = currentRating;
                 updateStars(currentRating);
             });
-            star.addEventListener('mouseenter', () => {
-                updateStars(parseInt(star.dataset.value));
-            });
+            star.addEventListener('mouseenter', () => updateStars(parseInt(star.dataset.value)));
         });
         els.ratingStars.addEventListener('mouseleave', () => updateStars(currentRating));
 
@@ -280,8 +247,7 @@
 
         els.themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark');
-            localStorage.setItem('travel_theme',
-                document.body.classList.contains('dark') ? 'dark' : 'light');
+            localStorage.setItem('travel_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
         });
 
         els.exportBtn.addEventListener('click', exportJson);
@@ -315,23 +281,17 @@
         });
     }
 
-    /* ---------- Фото ---------- */
     function renderPhotoPreview() {
         els.photoPreview.innerHTML = '';
         editingPhotos.forEach((dataUrl, index) => {
             const div = document.createElement('div');
             div.className = 'photo-thumb';
-            div.innerHTML = `
-                <img src="${dataUrl}" alt="Фото ${index + 1}" />
-                <button class="photo-remove" type="button" title="Удалить">✕</button>
-            `;
+            div.innerHTML = `<img src="${dataUrl}" alt="Фото ${index + 1}" /><button class="photo-remove" type="button" title="Удалить">✕</button>`;
             div.querySelector('.photo-remove').addEventListener('click', () => {
                 editingPhotos.splice(index, 1);
                 renderPhotoPreview();
             });
-            div.querySelector('img').addEventListener('click', () => {
-                openLightbox(editingPhotos, index);
-            });
+            div.querySelector('img').addEventListener('click', () => openLightbox(editingPhotos, index));
             els.photoPreview.appendChild(div);
         });
     }
@@ -339,22 +299,16 @@
     async function handlePhotoUpload(files) {
         const arr = Array.from(files);
         if (!arr.length) return;
-
         for (const file of arr) {
             if (!file.type.startsWith('image/')) continue;
             try {
                 const dataUrl = await PhotoUtils.compressImage(file);
                 editingPhotos.push(dataUrl);
-            } catch (e) {
-                console.error('Ошибка обработки фото:', e);
-            }
+            } catch (e) { console.error('Ошибка обработки фото:', e); }
         }
         renderPhotoPreview();
-
         const totalKb = editingPhotos.reduce((sum, p) => sum + PhotoUtils.sizeKb(p), 0);
-        if (totalKb > 3000) {
-            alert(`Суммарный размер фото ${totalKb} КБ. Может не хватить места — лучше удалить часть.`);
-        }
+        if (totalKb > 3000) alert(`Суммарный размер фото ${totalKb} КБ. Может не хватить места.`);
     }
 
     function openLightbox(photos, index = 0) {
@@ -387,7 +341,6 @@
         updateLightbox();
     }
 
-    /* ---------- Модальное окно поездки ---------- */
     function openModal(trip = null) {
         els.form.reset();
         editingId = null;
@@ -424,10 +377,7 @@
         }
 
         els.modal.classList.add('active');
-        setTimeout(() => {
-            els.tripTitle.focus();
-            TravelMap.invalidate();
-        }, 100);
+        setTimeout(() => { els.tripTitle.focus(); TravelMap.invalidate(); }, 100);
     }
 
     function closeModal() {
@@ -442,56 +392,55 @@
 
     function handleSubmit(e) {
         e.preventDefault();
+        try {
+            const trip = {
+                title: els.tripTitle.value.trim(),
+                country: els.tripCountry.value.trim(),
+                city: els.tripCity.value.trim(),
+                startDate: els.tripStart.value,
+                endDate: els.tripEnd.value,
+                lat: parseFloat(els.tripLat.value),
+                lng: parseFloat(els.tripLng.value),
+                notes: els.tripNotes.value.trim(),
+                rating: parseInt(els.tripRating.value) || 0,
+                photos: editingPhotos.slice()
+            };
 
-        const trip = {
-            title: els.tripTitle.value.trim(),
-            country: els.tripCountry.value.trim(),
-            city: els.tripCity.value.trim(),
-            startDate: els.tripStart.value,
-            endDate: els.tripEnd.value,
-            lat: parseFloat(els.tripLat.value),
-            lng: parseFloat(els.tripLng.value),
-            notes: els.tripNotes.value.trim(),
-            rating: parseInt(els.tripRating.value) || 0,
-            photos: editingPhotos.slice()
-        };
+            if (!trip.title || !trip.country || !trip.city) throw new ValidationError('Заполните название, страну и город');
+            if (!trip.startDate || !trip.endDate) throw new ValidationError('Укажите даты');
+            if (new Date(trip.endDate) < new Date(trip.startDate)) throw new ValidationError('Дата окончания раньше начала');
+            if (isNaN(trip.lat) || isNaN(trip.lng)) throw new ValidationError('Кликните по карте');
 
-        if (!trip.title || !trip.country || !trip.city || !trip.startDate || !trip.endDate) {
-            alert('Заполните все обязательные поля');
-            return;
+            justSaved = true;
+            if (editingId) Storage.update(editingId, trip);
+            else Storage.add(trip);
+
+            TravelMap.removePickingMarker();
+            trips = Storage.getAll();
+            renderAll();
+            closeModal();
+            setTimeout(() => TravelMap.invalidate(), 150);
+        } catch (error) {
+            console.error(error);
+            if (error instanceof ValidationError) alert('⚠️ ' + error.message);
+            else if (error instanceof StorageError) alert('💾 ' + error.message);
+            else if (error instanceof AuthError) alert('🔐 ' + error.message);
+            else alert('❌ ' + error.message);
         }
-        if (new Date(trip.endDate) < new Date(trip.startDate)) {
-            alert('Дата окончания не может быть раньше даты начала');
-            return;
-        }
-        if (isNaN(trip.lat) || isNaN(trip.lng)) {
-            alert('Кликните по карте, чтобы поставить точку');
-            return;
-        }
-
-        justSaved = true;
-        if (editingId) Storage.update(editingId, trip);
-        else Storage.add(trip);
-
-        TravelMap.removePickingMarker();
-        trips = Storage.getAll();
-        renderAll();
-        closeModal();
-        setTimeout(() => TravelMap.invalidate(), 150);
     }
 
-    /* ---------- Рендер ---------- */
     function renderAll() {
+        if (DEBUG) console.log('🔄 renderAll, поездок:', trips.length);
         renderCountryFilter();
         renderTrips();
         renderStats();
         TravelMap.render(trips);
+        if (DEBUG) console.table(trips);
     }
 
     function renderCountryFilter() {
         const current = els.countryFilter.value;
-        const countries = [...new Set(trips.map(t => t.country))].sort((a, b) =>
-            a.localeCompare(b, 'ru'));
+        const countries = [...new Set(trips.map(t => t.country))].sort((a, b) => a.localeCompare(b, 'ru'));
         els.countryFilter.innerHTML = '<option value="">Все страны</option>';
         countries.forEach(c => {
             const opt = document.createElement('option');
@@ -543,9 +492,7 @@
 
         els.emptyState.classList.add('hidden');
         const numberMap = buildNumberMap(trips);
-        filtered.forEach(trip => {
-            els.tripsList.appendChild(createTripCard(trip, numberMap.get(trip.id)));
-        });
+        filtered.forEach(trip => els.tripsList.appendChild(createTripCard(trip, numberMap.get(trip.id))));
     }
 
     function createTripCard(trip, number) {
@@ -561,23 +508,18 @@
         if (photos.length) {
             const shown = photos.slice(0, 3);
             const rest = photos.length - shown.length;
-            galleryHTML = `
-                <div class="trip-gallery">
-                    ${shown.map((p, i) => `
-                        <div class="gallery-item" data-photo-index="${i}">
-                            <img src="${p}" alt="Фото ${i + 1}" />
-                            ${i === 2 && rest > 0 ? `<div class="gallery-more">+${rest}</div>` : ''}
-                        </div>
-                    `).join('')}
-                </div>`;
+            galleryHTML = `<div class="trip-gallery">${shown.map((p, i) =>
+                `<div class="gallery-item" data-photo-index="${i}">
+                    <img src="${p}" alt="Фото ${i + 1}" />
+                    ${i === 2 && rest > 0 ? `<div class="gallery-more">+${rest}</div>` : ''}
+                </div>`).join('')}</div>`;
         }
 
         card.innerHTML = `
             <div class="trip-number" title="Порядковый номер">${number}</div>
             <h3>${escapeHtml(trip.title)}</h3>
             <div class="trip-location">📍 ${escapeHtml(trip.city)}, ${escapeHtml(trip.country)}</div>
-            <div class="trip-dates">
-                📅 ${formatDate(trip.startDate)} — ${formatDate(trip.endDate)}
+            <div class="trip-dates">📅 ${formatDate(trip.startDate)} — ${formatDate(trip.endDate)}
                 <span class="trip-duration">${days} ${pluralDays(days)}</span>
             </div>
             ${trip.rating ? `<div class="trip-rating">${stars}</div>` : ''}
@@ -636,7 +578,6 @@
         els.statDays.textContent = totalDays;
     }
 
-    /* ---------- Доп. кнопки ---------- */
     function openRandomTrip() {
         if (!trips.length) { alert('Сначала добавьте поездку'); return; }
         const trip = trips[Math.floor(Math.random() * trips.length)];
@@ -647,12 +588,10 @@
 
     function toggleFullscreen() {
         els.mapSection.classList.toggle('fullscreen');
-        els.fullscreenBtn.textContent = els.mapSection.classList.contains('fullscreen')
-            ? '⛶ Выйти' : '⛶ Экран';
+        els.fullscreenBtn.textContent = els.mapSection.classList.contains('fullscreen') ? '⛶ Выйти' : '⛶ Экран';
         setTimeout(() => TravelMap.invalidate(), 150);
     }
 
-    /* ---------- Экспорт / импорт ---------- */
     function exportJson() {
         if (!trips.length) return alert('Нет данных');
         const blob = new Blob([JSON.stringify(trips, null, 2)], { type: 'application/json' });
@@ -696,8 +635,8 @@
         reader.onload = ev => {
             try {
                 const data = JSON.parse(ev.target.result);
-                if (!Array.isArray(data)) throw new Error('Не массив');
-                const mode = confirm('Импорт: ОК — добавить к текущим, Отмена — заменить свои поездки.');
+                if (!Array.isArray(data)) throw new ValidationError('Файл должен содержать массив');
+                const mode = confirm('Импорт: ОК — добавить к текущим, Отмена — заменить.');
                 if (mode) {
                     const existing = Storage.getAll();
                     const merged = existing.concat(data.map(t => ({
@@ -707,10 +646,7 @@
                     })));
                     Storage.replaceMine(merged);
                 } else {
-                    Storage.replaceMine(data.map(t => ({
-                        ...t,
-                        photos: Array.isArray(t.photos) ? t.photos : []
-                    })));
+                    Storage.replaceMine(data.map(t => ({ ...t, photos: Array.isArray(t.photos) ? t.photos : [] })));
                 }
                 trips = Storage.getAll();
                 renderAll();
@@ -724,16 +660,17 @@
         reader.readAsText(file);
     }
 
-    /* ---------- Экспортируем наружу для main.js ---------- */
     window.__appInit = function () {
         bindAuthEvents();
         bindAppEvents();
 
-        if (Auth.isLoggedIn()) {
-            enterApp();
-        } else {
+        if (Auth.isLoggedIn()) enterApp();
+        else {
             els.authScreen.classList.remove('hidden');
             els.app.classList.add('hidden');
         }
     };
+
+    window.__openModal = openModal;
+    window.__renderAll = renderAll;
 })();

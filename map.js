@@ -1,5 +1,5 @@
 // =========================================================
-// map.js — модуль карты на Leaflet
+// map.js — карта на Leaflet (Яндекс.Карты)
 // =========================================================
 
 const TravelMap = (() => {
@@ -56,28 +56,19 @@ const TravelMap = (() => {
     function setPickingMarker(lat, lng) {
         if (pickingMarker) {
             pickingMarker.setLatLng([lat, lng]);
-            pickingMarker.setPopupContent(
-                `📌 <b>Точка поездки</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`
-            );
+            pickingMarker.setPopupContent(`📌 <b>Точка поездки</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`);
             return;
         }
         const icon = L.divIcon({
             className: '',
-            html: `<div style="background:#ef4444;width:32px;height:32px;border-radius:50%;
-                border:5px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.6),0 0 0 4px #ef4444;"></div>`,
+            html: `<div style="background:#ef4444;width:32px;height:32px;border-radius:50%;border:5px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.6),0 0 0 4px #ef4444;"></div>`,
             iconSize: [32, 32], iconAnchor: [16, 16]
         });
-        pickingMarker = L.marker([lat, lng], {
-            icon, draggable: true, zIndexOffset: 1000
-        }).addTo(map);
-        pickingMarker.bindPopup(
-            `📌 <b>Точка поездки</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`
-        ).openPopup();
+        pickingMarker = L.marker([lat, lng], { icon, draggable: true, zIndexOffset: 1000 }).addTo(map);
+        pickingMarker.bindPopup(`📌 <b>Точка поездки</b><br><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>`).openPopup();
         pickingMarker.on('drag', ev => {
             const { lat: la, lng: ln } = ev.target.getLatLng();
-            pickingMarker.setPopupContent(
-                `📌 <b>Точка поездки</b><br><small>${la.toFixed(5)}, ${ln.toFixed(5)}</small>`
-            );
+            pickingMarker.setPopupContent(`📌 <b>Точка поездки</b><br><small>${la.toFixed(5)}, ${ln.toFixed(5)}</small>`);
             if (window.__onMapClick) window.__onMapClick(la, ln);
         });
         pickingMarker.on('dragend', ev => {
@@ -121,12 +112,10 @@ const TravelMap = (() => {
 
     function totalDistance(trips) {
         if (trips.length < 2) return 0;
-        const sorted = [...trips].sort((a, b) =>
-            new Date(a.startDate) - new Date(b.startDate));
+        const sorted = [...trips].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         let total = 0;
         for (let i = 1; i < sorted.length; i++) {
-            total += haversine(sorted[i-1].lat, sorted[i-1].lng,
-                              sorted[i].lat, sorted[i].lng);
+            total += haversine(sorted[i-1].lat, sorted[i-1].lng, sorted[i].lat, sorted[i].lng);
         }
         return Math.round(total);
     }
@@ -146,25 +135,20 @@ const TravelMap = (() => {
             <div class="num-marker ${isFirst ? 'first' : ''}">
                 <svg viewBox="0 0 48 62" xmlns="http://www.w3.org/2000/svg">
                     <ellipse cx="24" cy="59" rx="8" ry="2.5" fill="rgba(0,0,0,.25)"/>
-                    <path d="M24 2C13 2 4 11 4 22c0 15 20 38 20 38s20-23 20-38C44 11 35 2 24 2z"
-                          fill="${color}" stroke="#ffffff" stroke-width="3"/>
+                    <path d="M24 2C13 2 4 11 4 22c0 15 20 38 20 38s20-23 20-38C44 11 35 2 24 2z" fill="${color}" stroke="#ffffff" stroke-width="3"/>
                     <circle cx="24" cy="22" r="12" fill="#ffffff" opacity="0.95"/>
                 </svg>
                 <div class="circle">${number}</div>
                 <div class="num-label ${labelClass}">${escapeHtml(city)}</div>
             </div>`;
-        return L.divIcon({
-            className: 'num-marker-wrap', html,
-            iconSize: [48, 62], iconAnchor: [24, 62], popupAnchor: [0, -58]
-        });
+        return L.divIcon({ className: 'num-marker-wrap', html, iconSize: [48, 62], iconAnchor: [24, 62], popupAnchor: [0, -58] });
     }
 
     function render(trips) {
         markersLayer.clearLayers();
         if (!trips.length) { routeLine.setLatLngs([]); return; }
 
-        const sorted = [...trips].sort((a, b) =>
-            new Date(a.startDate) - new Date(b.startDate));
+        const sorted = [...trips].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         const coords = [];
 
         sorted.forEach((trip, index) => {
@@ -179,12 +163,8 @@ const TravelMap = (() => {
             });
 
             const galleryHTML = photos.length
-                ? `<div class="popup-gallery">
-                       ${photos.slice(0, 4).map((p, i) => `
-                           <img src="${p}" data-popup-photo="${i}" alt="Фото ${i + 1}" />
-                       `).join('')}
-                       ${photos.length > 4 ? `<span style="font-size:11px;color:#64748b;align-self:center;">+${photos.length - 4}</span>` : ''}
-                   </div>`
+                ? `<div class="popup-gallery">${photos.slice(0, 4).map((p, i) =>
+                    `<img src="${p}" data-popup-photo="${i}" alt="Фото ${i + 1}" />`).join('')}</div>`
                 : '';
 
             marker.bindPopup(`
@@ -194,17 +174,14 @@ const TravelMap = (() => {
                 ${rating ? `<span style="color:#f59e0b">${rating}</span><br>` : ''}
                 ${galleryHTML}
                 <div class="popup-actions">
-                    <button class="popup-edit"   data-edit="${trip.id}">✏️ Изменить</button>
+                    <button class="popup-edit" data-edit="${trip.id}">✏️ Изменить</button>
                     <button class="popup-delete" data-del="${trip.id}">🗑 Удалить</button>
                 </div>
             `);
             marker.on('popupopen', e => {
                 const el = e.popup.getElement();
-                el.querySelector('[data-edit]')?.addEventListener('click', () =>
-                    onEditRequest && onEditRequest(trip.id));
-                el.querySelector('[data-del]')?.addEventListener('click', () =>
-                    onDeleteRequest && onDeleteRequest(trip.id));
-
+                el.querySelector('[data-edit]')?.addEventListener('click', () => onEditRequest && onEditRequest(trip.id));
+                el.querySelector('[data-del]')?.addEventListener('click', () => onDeleteRequest && onDeleteRequest(trip.id));
                 el.querySelectorAll('[data-popup-photo]').forEach(img => {
                     img.addEventListener('click', () => {
                         const idx = parseInt(img.dataset.popupPhoto);
@@ -223,18 +200,13 @@ const TravelMap = (() => {
 
     function fitAll() {
         const points = [];
-        markersLayer.eachLayer(l => {
-            const ll = l.getLatLng();
-            points.push([ll.lat, ll.lng]);
-        });
+        markersLayer.eachLayer(l => { const ll = l.getLatLng(); points.push([ll.lat, ll.lng]); });
         if (!points.length) return;
         if (points.length === 1) map.setView(points[0], 9);
         else map.fitBounds(L.latLngBounds(points), { padding: [60, 60], maxZoom: 10 });
     }
 
-    function focusTrip(trip) {
-        map.setView([trip.lat, trip.lng], 11, { animate: true });
-    }
+    function focusTrip(trip) { map.setView([trip.lat, trip.lng], 11, { animate: true }); }
 
     function toggleRoute() {
         routeVisible = !routeVisible;
@@ -244,9 +216,7 @@ const TravelMap = (() => {
 
     function toggleLabels() {
         labelsVisible = !labelsVisible;
-        document.querySelectorAll('.num-label').forEach(el => {
-            el.classList.toggle('hidden', !labelsVisible);
-        });
+        document.querySelectorAll('.num-label').forEach(el => el.classList.toggle('hidden', !labelsVisible));
         return labelsVisible;
     }
 
@@ -264,12 +234,8 @@ const TravelMap = (() => {
             pos => {
                 const { latitude, longitude } = pos.coords;
                 if (meMarker) map.removeLayer(meMarker);
-                const icon = L.divIcon({
-                    className: 'me-marker', iconSize: [20, 20], iconAnchor: [10, 10]
-                });
-                meMarker = L.marker([latitude, longitude], { icon })
-                    .addTo(map)
-                    .bindPopup('📍 Вы здесь').openPopup();
+                const icon = L.divIcon({ className: 'me-marker', iconSize: [20, 20], iconAnchor: [10, 10] });
+                meMarker = L.marker([latitude, longitude], { icon }).addTo(map).bindPopup('📍 Вы здесь').openPopup();
                 map.setView([latitude, longitude], 13);
             },
             err => alert('Не удалось: ' + err.message),
@@ -281,15 +247,12 @@ const TravelMap = (() => {
 
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, c => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;',
-            '"': '&quot;', "'": '&#39;'
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[c]));
     }
     function formatDate(iso) {
         if (!iso) return '';
-        return new Date(iso).toLocaleDateString('ru-RU', {
-            day: 'numeric', month: 'short', year: 'numeric'
-        });
+        return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
     return {

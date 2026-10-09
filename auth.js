@@ -1,5 +1,6 @@
 // =========================================================
 // auth.js — модуль авторизации
+// Хэширование пароля через SHA-256 (Web Crypto API)
 // =========================================================
 
 const Auth = (() => {
@@ -9,9 +10,15 @@ const Auth = (() => {
     /**
      * Хэширует пароль через SHA-256.
      * @param {string} password
-     * @returns {Promise<string>}
+     * @returns {Promise<string>} hex-строка
      */
     async function hashPassword(password) {
+        if (!window.crypto || !window.crypto.subtle) {
+            throw new AuthError(
+                'Браузер не поддерживает Web Crypto API. ' +
+                'Откройте приложение через Live Server (http://localhost), а не file://'
+            );
+        }
         const enc = new TextEncoder();
         const data = enc.encode(password + '::travel_salt_v1');
         const buf = await crypto.subtle.digest('SHA-256', data);
@@ -32,13 +39,13 @@ const Auth = (() => {
     async function register(name, email, password) {
         email = email.trim().toLowerCase();
         name = name.trim();
-        if (!name || !email || !password) throw new Error('Заполните все поля');
-        if (password.length < 4) throw new Error('Пароль должен быть минимум 4 символа');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Некорректный email');
+        if (!name || !email || !password) throw new AuthError('Заполните все поля');
+        if (password.length < 4) throw new AuthError('Пароль должен быть минимум 4 символа');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AuthError('Некорректный email');
 
         const users = getUsers();
         if (users.some(u => u.email === email)) {
-            throw new Error('Пользователь с таким email уже существует');
+            throw new AuthError('Пользователь с таким email уже существует');
         }
         const user = {
             id: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -56,9 +63,9 @@ const Auth = (() => {
         email = email.trim().toLowerCase();
         const users = getUsers();
         const user = users.find(u => u.email === email);
-        if (!user) throw new Error('Пользователь не найден');
+        if (!user) throw new AuthError('Пользователь не найден');
         const hash = await hashPassword(password);
-        if (hash !== user.passwordHash) throw new Error('Неверный пароль');
+        if (hash !== user.passwordHash) throw new AuthError('Неверный пароль');
         setSession(user.id);
         return user;
     }

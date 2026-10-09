@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<!-- ============ ЭКРАН АВТОРИЗАЦИИ ============ -->
+<!-- ЭКРАН АВТОРИЗАЦИИ -->
 <div id="authScreen" class="auth-screen">
     <div class="auth-card">
         <div class="auth-logo">🌍</div>
@@ -22,14 +22,8 @@
         </div>
 
         <form id="loginForm" class="auth-form" autocomplete="on">
-            <label>
-                Email
-                <input type="email" id="loginEmail" required placeholder="you@example.com" autocomplete="email" />
-            </label>
-            <label>
-                Пароль
-                <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password" minlength="4" />
-            </label>
+            <label>Email<input type="email" id="loginEmail" required placeholder="you@example.com" autocomplete="email" /></label>
+            <label>Пароль<input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password" minlength="4" /></label>
             <div class="auth-error" id="loginError"></div>
             <button type="submit" class="btn btn-primary full-width">Войти</button>
         </form>
@@ -47,22 +41,19 @@
     </div>
 </div>
 
-<!-- ============ ОСНОВНОЕ ПРИЛОЖЕНИЕ ============ -->
+<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
 <div id="app" class="hidden">
 
 <header class="app-header">
     <div class="container header-inner">
         <h1>🌍 Дневник Путешественника</h1>
         <div class="header-actions">
-            <span class="user-chip" title="Профиль">👤 <b id="userNameChip">—</b></span>
-            <button id="themeBtn"     class="btn btn-ghost" title="Тёмная тема">🌓 Тема</button>
-            <button id="exportCsvBtn" class="btn btn-ghost" title="Экспорт в CSV">📊 CSV</button>
-            <button id="exportBtn"    class="btn btn-ghost" title="Экспорт в JSON">📤 JSON</button>
-            <label class="btn btn-ghost" title="Импорт из JSON">
-                📥 Импорт
-                <input type="file" id="importInput" accept="application/json" hidden />
-            </label>
-            <button id="logoutBtn" class="btn btn-ghost danger" title="Выйти">🚪 Выйти</button>
+            <span class="user-chip">👤 <b id="userNameChip">—</b></span>
+            <button id="themeBtn"     class="btn btn-ghost">🌓 Тема</button>
+            <button id="exportCsvBtn" class="btn btn-ghost">📊 CSV</button>
+            <button id="exportBtn"    class="btn btn-ghost">📤 JSON</button>
+            <label class="btn btn-ghost">📥 Импорт<input type="file" id="importInput" accept="application/json" hidden /></label>
+            <button id="logoutBtn" class="btn btn-ghost danger">🚪 Выйти</button>
             <button id="addTripBtn" class="btn btn-primary">+ Добавить</button>
         </div>
     </div>
@@ -97,9 +88,7 @@
             </div>
         </div>
         <div id="map"></div>
-        <div id="mapHint" class="map-hint">
-            👆 <b>Кликните по карте</b>, чтобы поставить точку. Каждая поездка получает номер.
-        </div>
+        <div id="mapHint" class="map-hint">👆 <b>Кликните по карте</b>, чтобы поставить точку. Каждая поездка получает номер.</div>
     </section>
 
     <section class="trips-section">
@@ -107,7 +96,7 @@
             <h2>📔 Мои поездки</h2>
             <div class="trips-toolbar">
                 <select id="sortSelect" class="select">
-                    <option value="date-asc">По порядку (от первой)</option>
+                    <option value="date-asc">По порядку</option>
                     <option value="date-desc">Сначала новые</option>
                     <option value="rating-desc">По оценке (высокие)</option>
                     <option value="rating-asc">По оценке (низкие)</option>
@@ -121,17 +110,13 @@
                     <option value="4">⭐ 4 и выше</option>
                     <option value="5">⭐ Только 5</option>
                 </select>
-                <select id="countryFilter" class="select">
-                    <option value="">Все страны</option>
-                </select>
+                <select id="countryFilter" class="select"><option value="">Все страны</option></select>
                 <input type="text" id="searchInput" placeholder="🔍 Поиск..." />
                 <button id="resetFiltersBtn" class="btn btn-tool">↺ Сброс</button>
             </div>
         </div>
         <div id="tripsList" class="trips-list"></div>
-        <div id="emptyState" class="empty-state">
-            <p>Пока нет ни одной поездки. Нажмите «+ Добавить», чтобы начать! 🚀</p>
-        </div>
+        <div id="emptyState" class="empty-state"><p>Пока нет ни одной поездки. Нажмите «+ Добавить», чтобы начать! 🚀</p></div>
     </section>
 </main>
 
@@ -141,16 +126,10 @@
             <h2 id="modalTitle">Новая поездка</h2>
             <button class="modal-close" id="closeModal" type="button">✕</button>
         </div>
-
-        <div class="pick-tip">
-            💡 <b>Кликните по карте</b> — координаты подставятся сюда автоматически.
-        </div>
-
+        <div class="pick-tip">💡 <b>Кликните по карте</b> — координаты подставятся сюда автоматически.</div>
         <form id="tripForm">
             <input type="hidden" id="tripId" />
-            <div class="form-row">
-                <label>Название поездки *<input type="text" id="tripTitle" required placeholder="Например: Летний отпуск в Сочи" /></label>
-            </div>
+            <div class="form-row"><label>Название поездки *<input type="text" id="tripTitle" required placeholder="Летний отпуск в Сочи" /></label></div>
             <div class="form-row two-cols">
                 <label>Страна *<input type="text" id="tripCountry" required placeholder="Россия" /></label>
                 <label>Город *<input type="text" id="tripCity" required placeholder="Москва" /></label>
@@ -163,31 +142,19 @@
                 <label>Широта *<input type="number" step="any" id="tripLat" required placeholder="55.7558" /></label>
                 <label>Долгота *<input type="number" step="any" id="tripLng" required placeholder="37.6173" /></label>
             </div>
-            <div class="form-row">
-                <label>Заметки<textarea id="tripNotes" rows="3" placeholder="Впечатления, интересные места, советы..."></textarea></label>
-            </div>
-
+            <div class="form-row"><label>Заметки<textarea id="tripNotes" rows="3" placeholder="Впечатления..."></textarea></label></div>
             <div class="form-row">
                 <label>Фотографии</label>
                 <div class="photos-editor">
                     <div id="photoPreview" class="photo-preview"></div>
-                    <label class="photo-add-btn">
-                        📷 Добавить фото
-                        <input type="file" id="photoInput" accept="image/*" multiple hidden />
-                    </label>
-                    <div class="photos-hint">Можно добавить несколько. Фото автоматически сжимаются до ~1200px.</div>
+                    <label class="photo-add-btn">📷 Добавить фото<input type="file" id="photoInput" accept="image/*" multiple hidden /></label>
+                    <div class="photos-hint">Можно добавить несколько. Фото сжимаются до ~1200px.</div>
                 </div>
             </div>
-
             <div class="form-row">
-                <label>
-                    Оценка
+                <label>Оценка
                     <div class="rating" id="ratingStars">
-                        <span data-value="1">★</span>
-                        <span data-value="2">★</span>
-                        <span data-value="3">★</span>
-                        <span data-value="4">★</span>
-                        <span data-value="5">★</span>
+                        <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span data-value="4">★</span><span data-value="5">★</span>
                     </div>
                     <input type="hidden" id="tripRating" value="0" />
                 </label>
@@ -199,8 +166,7 @@
         </form>
     </div>
 </div>
-
-</div><!-- /#app -->
+</div>
 
 <div class="lightbox" id="lightbox">
     <button class="lightbox-close" id="lightboxClose" type="button">✕</button>
@@ -209,7 +175,9 @@
     <button class="lightbox-next" id="lightboxNext" type="button">›</button>
 </div>
 
+<!-- ⚠️ ВАЖНО: порядок скриптов критичен! -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="exceptions.js"></script>
 <script src="auth.js"></script>
 <script src="storage.js"></script>
 <script src="photos.js"></script>

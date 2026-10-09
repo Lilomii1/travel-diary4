@@ -1,38 +1,17 @@
-# Стандарты кодирования проекта «Дневник Путешественника»
+# Стандарты кодирования
 
 ## Именование
 
 | Элемент | Стиль | Пример |
 |---------|-------|--------|
-| Переменные | camelCase | `userName`, `tripId`, `startDate` |
-| Константы | UPPER_SNAKE_CASE | `MAX_PHOTO_SIZE`, `DEFAULT_ZOOM` |
-| Функции | camelCase | `calcDistance`, `renderTrips` |
-| Классы / модули | PascalCase | `Auth`, `Storage`, `TravelMap` |
-| Файлы | kebab-case или camelCase | `app.js`, `photo-utils.js` |
-| CSS-классы | kebab-case | `.trip-card`, `.photo-preview` |
-| ID элементов | camelCase | `tripTitle`, `photoInput` |
+| Переменные | camelCase | tripId, startDate |
+| Константы | UPPER_SNAKE_CASE | MAX_PHOTO_SIZE |
+| Функции | camelCase | calcDistance |
+| Модули | PascalCase | Auth, TravelMap |
+| Файлы | kebab-case | photo-utils.js |
 
 ## Форматирование
 
-- Отступ: 4 пробела.
-- Точка с запятой: обязательна.
-- Кавычки: одинарные `'...'` (в HTML — двойные).
-- Максимальная длина строки: 100 символов.
-- Пустая строка между логическими блоками.
-
-## Комментарии
-
-- JSDoc для функций: `/** ... */`.
-- Однострочные — `// ...`.
-- Комментировать **сложные** участки (хэширование, сжатие фото, haversine).
-- Не комментировать очевидное.
-
-## Архитектура
-
-- Модульный подход через IIFE: `const Module = (() => { ... })();`
-- Один модуль = одна ответственность.
-- Разделение:
-  - `auth.js` — пользователи и сессия
-  - `app.js` — UI и связка
-  - `map.js` — карта Leaflet
-  - `photos.js` — работа с изображениями
+- Отступ: 4 пробела
+- Точка с запятой обязательна
+- Кавычки: одинарные

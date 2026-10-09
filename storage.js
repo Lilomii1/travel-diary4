@@ -1,33 +1,37 @@
 // =========================================================
-// storage.js — модуль работы с localStorage
-// Отвечает за чтение/запись/фильтрацию поездок по пользователю.
+// storage.js — работа с localStorage
 // =========================================================
 
 const Storage = (() => {
     const KEY = 'travel_diary_trips';
 
-    /** Все поездки (всех пользователей) */
     function allTrips() {
         try { return JSON.parse(localStorage.getItem(KEY)) || []; }
         catch { return []; }
     }
 
-    /** Сохранить массив поездок */
     function saveAll(trips) {
-        localStorage.setItem(KEY, JSON.stringify(trips));
+        try {
+            localStorage.setItem(KEY, JSON.stringify(trips));
+        } catch (e) {
+            if (e.name === 'QuotaExceededError') {
+                throw new StorageError('Хранилище заполнено. Удалите старые поездки.');
+            }
+            throw new StorageError('Ошибка сохранения: ' + e.message);
+        }
     }
 
-    /** Поездки текущего пользователя */
     function getAll() {
         const u = Auth.currentUser();
         if (!u) return [];
         return allTrips().filter(t => t.userId === u.id);
     }
 
-    /** Добавить поездку */
     function add(trip) {
         const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
+        if (!u) throw new AuthError('Вы не авторизованы');
+        if (!trip.title || !trip.country) throw new ValidationError('Заполните обязательные поля');
+
         const trips = allTrips();
         trip.id = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 6);
         trip.userId = u.id;
@@ -37,34 +41,30 @@ const Storage = (() => {
         return trip;
     }
 
-    /** Обновить поездку */
     function update(id, updated) {
         const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
+        if (!u) throw new AuthError('Не авторизован');
         const trips = allTrips();
         const i = trips.findIndex(t => t.id === id && t.userId === u.id);
-        if (i === -1) return null;
+        if (i === -1) throw new DataError('Поездка не найдена');
         trips[i] = { ...trips[i], ...updated, id, userId: u.id };
         saveAll(trips);
         return trips[i];
     }
 
-    /** Удалить поездку */
     function remove(id) {
         const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
+        if (!u) throw new AuthError('Не авторизован');
         saveAll(allTrips().filter(t => !(t.id === id && t.userId === u.id)));
     }
 
-    /** Получить поездку по id */
     function getById(id) {
         return getAll().find(t => t.id === id) || null;
     }
 
-    /** Заменить все поездки текущего пользователя */
     function replaceMine(newTrips) {
         const u = Auth.currentUser();
-        if (!u) throw new Error('Не авторизован');
+        if (!u) throw new AuthError('Не авторизован');
         const others = allTrips().filter(t => t.userId !== u.id);
         const mine = newTrips.map(t => ({ ...t, userId: u.id }));
         saveAll(others.concat(mine));

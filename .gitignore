@@ -1,7 +1,29 @@
-node_modules/
+# Системные файлы
 .DS_Store
-*.log
+Thumbs.db
+desktop.ini
+
+# Редакторы
 .vscode/
 .idea/
-dist/
+*.swp
+*.swo
+*~
+
+# Временные файлы
+*.log
 *.tmp
+*.bak
+
+# Дубликаты файлов (если ещё не удалили)
+*\(1\)*
+*копия*
+*copy*
+
+# Node.js (если будете использовать)
+node_modules/
+npm-debug.log*
+
+# Секреты
+.env
+.env.local
